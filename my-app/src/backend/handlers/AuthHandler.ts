@@ -2,6 +2,7 @@ import { BaseHandler } from "./BaseHandler";
 import { AuthService } from "../services/AuthService";
 import { AuthValidator } from "../validators/AuthValidator";
 import { JWT } from "../utils/JWT";
+import { RateLimiter } from "../rate-limiters/RateLimiter";
 import { AuthError } from "../errors/AuthError";
 
 export class AuthHandler extends BaseHandler {
@@ -10,13 +11,14 @@ export class AuthHandler extends BaseHandler {
     private readonly validator: AuthValidator
   ) {
     super();
+    this.rateLimiter = new RateLimiter(5, 1 * 60 * 1000);
   }
 
   protected async execute(req: Request): Promise<Response> {
     const url = new URL(req.url);
 
     if (req.method === "POST" && url.pathname.endsWith("/register")) {
-      const body = await req.json();
+      const body = await this.safeJson(req);
       const data = this.validator.validate(body);
       const result = await this.service.register(data);
 
@@ -24,12 +26,12 @@ export class AuthHandler extends BaseHandler {
     }
 
     if (req.method === "POST" && url.pathname.endsWith("/login")) {
-      const body = await req.json();
+      const body = await this.safeJson(req);
       const data = this.validator.validate(body);
       const result = await this.service.login(data);
-
+    
       return this.respond(result);
-    }
+    }    
 
     if (req.method === "GET" && url.pathname.endsWith("/me")) {
       const token = this.extractToken(req);
@@ -56,6 +58,15 @@ export class AuthHandler extends BaseHandler {
       }
     );
   }
+
+  private async safeJson(req: Request) {
+    try {
+      return await req.json();
+    } catch {
+      throw new AuthError("Request body must be valid JSON");
+    }
+  }
+  
 
   private extractToken(req: Request): string {
     const cookie = req.headers.get("cookie");
