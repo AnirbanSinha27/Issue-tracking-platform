@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum IssueType {
+  CLOUD_SECURITY
+  REDTEAM_ASSESSMENT
+  VAPT
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  issues        Issue[]
+}
+
+model Issue {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  type        IssueType
+  status      IssueStatus  @default(OPEN)
+  priority    Int?
+
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
