@@ -11,7 +11,7 @@ export class AuthHandler extends BaseHandler {
     private readonly validator: AuthValidator
   ) {
     super();
-    this.rateLimiter = new RateLimiter(5, 1 * 60 * 1000);
+    this.rateLimiter = new RateLimiter(100, 15 * 60 * 1000);
   }
 
   protected async execute(req: Request): Promise<Response> {
