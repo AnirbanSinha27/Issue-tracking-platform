@@ -2,9 +2,12 @@ import { AuthRepository } from "../repositories/AuthRepository";
 import { Password } from "../utils/Password";
 import { JWT } from "../utils/JWT";
 import { AuthError } from "../errors/AuthError";
+import { EmailService } from "./EmailService";
 
 export class AuthService {
-  constructor(private readonly repo: AuthRepository) {}
+  constructor(private readonly repo: AuthRepository,
+    private readonly emailService = new EmailService()
+  ) {}
 
   async register(input: {
     name: string;
@@ -23,6 +26,9 @@ export class AuthService {
       email: input.email,
       passwordHash,
     });
+
+    this.emailService.sendWelcomeEmail(user.email, user.name)
+      .catch(console.error);
 
     return {
       user,

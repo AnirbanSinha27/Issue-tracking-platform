@@ -1,18 +1,41 @@
 import { IssueRepository } from "../repositories/IssueRepository";
 import { ApiError } from "../errors/ApiError";
+import { EmailService } from "./EmailService";
+import { CreateIssueInput, UpdateIssueInput } from "../validators/IssueValidator";
+import { IssueType } from "@prisma/client";
+import { prisma } from "@/src/lib/prisma";
 
 export class IssueService {
-  constructor(private readonly repo: IssueRepository) {}
+  constructor(
+    private readonly repo: IssueRepository,
+    private readonly emailService = new EmailService()
+  ) {}
 
-  async create(userId: string, input: any) {
-    return this.repo.create({
+  async create(userId: string, input: CreateIssueInput) {
+    const issue = await this.repo.create({
       ...input,
       userId,
     });
+
+    // Send email notification asynchronously
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (user) {
+      this.emailService.sendIssueCreatedEmail(user.email, {
+        title: issue.title,
+        type: issue.type,
+        description: issue.description,
+      }).catch(console.error);
+    }
+
+    return issue;
   }
 
   async list(userId: string, type?: string) {
-    return this.repo.findAllByUser(userId, type);
+    const issueType = type as IssueType | undefined;
+    return this.repo.findAllByUser(userId, issueType);
   }
 
   async getById(userId: string, issueId: string) {
@@ -23,7 +46,7 @@ export class IssueService {
     return issue;
   }
 
-  async update(userId: string, issueId: string, data: any) {
+  async update(userId: string, issueId: string, data: UpdateIssueInput) {
     const result = await this.repo.update(issueId, userId, data);
     if (result.count === 0) {
       throw new ApiError("Issue not found", 404);
