@@ -19,19 +19,18 @@ export class AuthHandler extends BaseHandler {
 
     if (req.method === "POST" && url.pathname.endsWith("/register")) {
       const body = await this.safeJson(req);
-      const data = this.validator.validate(body);
+      const data = this.validator.validateRegister(body);
       const result = await this.service.register(data);
-
       return this.respond(result);
     }
-
+    
     if (req.method === "POST" && url.pathname.endsWith("/login")) {
       const body = await this.safeJson(req);
-      const data = this.validator.validate(body);
+      const data = this.validator.validateLogin(body);
       const result = await this.service.login(data);
-    
       return this.respond(result);
-    }    
+    }
+       
 
     if (req.method === "GET" && url.pathname.endsWith("/me")) {
       const token = this.extractToken(req);
