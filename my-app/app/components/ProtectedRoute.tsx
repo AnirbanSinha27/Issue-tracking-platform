@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/src/lib/api";
+import Loading from "./Loading";
 
 export default function ProtectedRoute({
   children,
@@ -18,7 +19,7 @@ export default function ProtectedRoute({
       .catch(() => router.push("/login"));
   }, [router]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Loading/>;
 
   return <>{children}</>;
 }
