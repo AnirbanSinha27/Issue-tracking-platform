@@ -1,17 +1,18 @@
 import { BaseRepository } from "./BaseRepository";
+import { IssueType, IssueStatus, Prisma } from "@prisma/client";
 
 export class IssueRepository extends BaseRepository {
   async create(data: {
     title: string;
     description: string;
-    type: any;
+    type: IssueType;
     priority?: number;
     userId: string;
   }) {
     return this.prisma.issue.create({ data });
   }
 
-  async findAllByUser(userId: string, type?: string) {
+  async findAllByUser(userId: string, type?: IssueType) {
     return this.prisma.issue.findMany({
       where: {
         userId,
@@ -27,7 +28,11 @@ export class IssueRepository extends BaseRepository {
     });
   }
 
-  async update(id: string, userId: string, data: any) {
+  async update(
+    id: string,
+    userId: string,
+    data: Prisma.IssueUpdateInput
+  ) {
     return this.prisma.issue.updateMany({
       where: { id, userId },
       data,
