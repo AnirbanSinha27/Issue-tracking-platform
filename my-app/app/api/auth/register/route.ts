@@ -1,3 +1,6 @@
+export const runtime = "nodejs";
+
+
 import { AuthHandler } from "@/src/backend/handlers/AuthHandler";
 import { AuthService } from "@/src/backend/services/AuthService";
 import { AuthRepository } from "@/src/backend/repositories/AuthRepository";
